@@ -5,10 +5,10 @@ import LidarScreen from './components/LidarScreen'
 import Hud from './components/Hud'
 import EditorPage from './editor/EditorPage'
 import DemoPage from './components/DemoPage'
-import { resetSim, sim, stepSim } from './sim/engine'
-import { lidar } from './sim/lidar'
+import { resetSim } from './sim/engine'
+import { simTick } from './sim/loop'
 import { formatScale, publishTelemetry, stepTimeScale, TIME_SCALES, useCampus, useUi } from './sim/store'
-import { detectEvents, resetEvents } from './sim/events'
+import { resetEvents } from './sim/events'
 
 type Route = 'sim' | 'editor' | 'demo'
 
@@ -39,9 +39,7 @@ function useSimulationLoop(active: boolean) {
     const tick = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.12)
       last = now
-      stepSim(dt)
-      lidar.step(dt)
-      detectEvents()
+      simTick(dt)
       acc += dt
       if (acc > 0.09) {
         acc = 0
@@ -57,11 +55,6 @@ function useSimulationLoop(active: boolean) {
 function SimPage() {
   const ui = useUi()
   const rt = useCampus((s) => s.rt)
-
-  useEffect(() => {
-    sim.running = ui.running
-    sim.timeScale = ui.timeScale
-  }, [ui.running, ui.timeScale])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
